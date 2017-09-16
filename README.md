@@ -1,2 +1,2 @@
-# NOTES-Algorithms-courses
+# NOTES-algorithms-courses
 My notes for Algorithms courses
