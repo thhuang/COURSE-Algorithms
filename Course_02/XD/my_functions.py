@@ -86,7 +86,6 @@ class Graph:
 
         while not stk.is_empty():
             v = stk.pop()
-            print(v)
             if not self.is_explored(v):
                 self.explore(v)
                 self._leader[s].append(v)
