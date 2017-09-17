@@ -33,10 +33,13 @@ class Graph:
         self._t = 0  # finishing time
         self._s = None  # leader
 
+        print('Loading from ' + filename)
         for line in tqdm(open(filename)):
             v, w = line.split()
             v = int(v)
             w = int(w)
+
+            self._edges.append((v, w))
 
             # add adjacent list
             if not self._vertices.get(v):
@@ -56,10 +59,6 @@ class Graph:
             if not self._vertices_rev.get(v):
                 self._vertices_rev[v] = []
 
-
-
-            self._edges.append((v, w))
-
         sleep(0.1)
         print('n = ' + str(len(self._vertices)) + ', m = ' + str(len(self._edges)))
         print('{:-^50}'.format(''))
@@ -77,6 +76,13 @@ class Graph:
 
     def explore(self, v):
         self._territory[v] = True
+
+    def scc(self):
+        scc_size = list()
+        for k in self._leader.keys():
+            scc_size.append(len(self._leader[k]))
+        scc_size.sort()
+        return scc_size
 
     def reset_territory(self):
         for v in self._territory:
@@ -106,9 +112,17 @@ class Graph:
                     self._finish[self._t - start.size()] = start.pop()
 
     def dfs_loop(self, reverse=False):
-        for i in reversed(list(self._vertices.keys())):
+        keys = list(self._vertices.keys())
+        for i in tqdm(reversed(keys)) if reverse else tqdm(reversed(range(len(keys)))):
+            if not reverse:
+                i = self._finish[i + 1]
             if not self.is_explored(i):
                 self._s = i
                 self.dfs(self._s, reverse)
-                #print(str(self._s) + ' leads ' + str(len(self._leader[self._s])))
-        print(self._finish)
+        sleep(0.1)
+        '''
+        if reverse:
+            print(self._finish)
+        else:
+            print(self._leader)
+        '''
