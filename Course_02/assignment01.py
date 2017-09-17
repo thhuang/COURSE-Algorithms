@@ -7,6 +7,7 @@ G = my.Graph('large_files/SCC_test01.txt')
 #s = random.choice(list(G.vertices.keys()))
 #print('s = ' + str(s) + ', ' + str(G.vertices[s]))
 
-G.dfs_loop()
+G.dfs_loop(reverse=True)
+
 
 

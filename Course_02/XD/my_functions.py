@@ -12,11 +12,14 @@ class Stack:
     def pop(self):
         return self._storage.pop()
 
-    def peek(self):
-        return self._storage[-1]
+    def size(self):
+        return len(self._storage)
 
     def is_empty(self):
-        return len(self._storage) == 0
+        return self.size() == 0
+
+    def peek(self):
+        return self._storage[-1] if self.size() else None
 
 
 class Graph:
@@ -83,18 +86,24 @@ class Graph:
         self._leader[s] = []
         stk = Stack()
         stk.push(s)
+        start = Stack()
 
         while not stk.is_empty():
             v = stk.pop()
             if not self.is_explored(v):
+                start.push(v)
                 self.explore(v)
                 self._leader[s].append(v)
+                self._t += 1
                 if reverse:
                     for w in self._vertices_rev[v]:
                         stk.push(w)
                 else:
                     for w in self._vertices[v]:
                         stk.push(w)
+            if reverse:
+                while (stk.peek() == None or stk.peek() not in self._vertices_rev[start.peek()]) and not start.is_empty():
+                    self._finish[self._t - start.size()] = start.pop()
 
     def dfs_loop(self, reverse=False):
         for i in reversed(list(self._vertices.keys())):
@@ -102,4 +111,4 @@ class Graph:
                 self._s = i
                 self.dfs(self._s, reverse)
                 #print(str(self._s) + ' leads ' + str(len(self._leader[self._s])))
-
+        print(self._finish)
