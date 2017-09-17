@@ -1,2 +1,5 @@
 print('Graph Search, Shortest Paths, and Data Structures')
-print('https://www.coursera.org/learn/algorithms-graphs-data-structures/home/welcome')
+
+import XD.my_functions as xd
+
+stk = xd.Stack()
