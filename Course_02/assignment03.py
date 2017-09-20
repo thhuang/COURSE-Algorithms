@@ -1,30 +1,31 @@
 import XD.my_functions as my
+from tqdm import tqdm
+from time import sleep
 
-h = my.Heap()
+h_low = my.Heap(max_heap=True)
+h_high = my.Heap()
 
-h.push(3)
-h.push(4)
-h.push(1)
-h.push(6)
-h.push(2)
-h.push(10)
-h.push(5)
-print(len(h))
-print(h)
-while len(h):
-    print(h.pop())
+medians = list()
 
-print('-----------------------')
+for num in tqdm(open('large_files/Median.txt')):
 
-h = my.Heap(max_heap=True)
-h.push(3)
-h.push(4)
-h.push(1)
-h.push(6)
-h.push(2)
-h.push(10)
-h.push(5)
-print(len(h))
-print(h)
-while len(h):
-    print(h.pop())
+    num = int(num)
+    if len(h_low) and h_low.peek() > num:
+        h_low.push(num)
+    elif len(h_high) and h_high.peek() < num:
+        h_high.push(num)
+    else:
+        h_low.push(num)
+
+    while len(h_low) > len(h_high) + 1:
+        h_high.push(h_low.pop())
+    while len(h_high) > len(h_low) + 1:
+        h_low.push(h_high.pop())
+
+    if len(h_high) > len(h_low):
+        medians.append(h_high.peek())
+    else:
+        medians.append(h_low.peek())
+
+sleep(0.1)
+print(sum(medians) % 10000)

@@ -90,6 +90,9 @@ class Heap:
                     break
         return ans
 
+    def peek(self):
+        return self[0]
+
 class Graph:
     def __init__(self, filename, edge_list=False, different_length=False):
         self._vertices = dict()
