@@ -8,8 +8,8 @@ class Stack:
     def __init__(self):
         self._storage = []
 
-    def push(self, item):
-        self._storage.append(item)
+    def push(self, x):
+        self._storage.append(x)
 
     def pop(self):
         return self._storage.pop()
@@ -23,6 +23,73 @@ class Stack:
     def peek(self):
         return self._storage[-1] if self.size() else None
 
+
+class Heap:
+    def __init__(self, max_heap=False):
+        self._storage = []
+        self._max_heap = max_heap
+
+    def __len__(self):
+        return len(self._storage)
+
+    def __getitem__(self, i):
+        return self._storage[i]
+
+    def __setitem__(self, i, x):
+        self._storage[i] = x
+
+    def __str__(self):
+        return str(self._storage)
+
+    def _swap(self, i, j):
+        self[i], self[j] = self[j], self[i]
+
+    def push(self, x):
+        self._storage.append(x)
+        i = len(self)
+
+        if self._max_heap:
+            while i != 1 and self[i - 1] > self[i // 2 - 1]:
+                self._swap(i - 1, i // 2 - 1)
+                i = i // 2
+        else:
+            while i != 1 and self[i - 1] < self[i // 2 - 1]:
+                self._swap(i - 1, i // 2 - 1)
+                i = i // 2
+
+    def pop(self):
+        self._swap(-1, 0)
+        ans = self._storage.pop()
+        i = 1
+        if self._max_heap:
+            while i * 2 <= len(self):
+                if i * 2 == len(self) and self[i - 1] < self[i * 2 - 1]:
+                    self._swap(i - 1, i * 2 - 1)
+                    i = i * 2
+                elif i * 2 < len(self):
+                    if self[i * 2 - 1] < self[i * 2]:
+                        self._swap(i - 1, i * 2 - 1)
+                        i = i * 2
+                    else:
+                        self._swap(i - 1, i * 2)
+                        i = i * 2 + 1
+                else:
+                    break
+        else:
+            while i * 2 <= len(self):
+                if i * 2 == len(self) and self[i - 1] > self[i * 2 - 1]:
+                    self._swap(i - 1, i * 2 - 1)
+                    i = i * 2
+                elif i * 2 < len(self):
+                    if self[i * 2 - 1] < self[i * 2]:
+                        self._swap(i - 1, i * 2 - 1)
+                        i = i * 2
+                    else:
+                        self._swap(i - 1, i * 2)
+                        i = i * 2 + 1
+                else:
+                    break
+        return ans
 
 class Graph:
     def __init__(self, filename, edge_list=False, different_length=False):
@@ -128,7 +195,8 @@ class Graph:
                     for w in self._vertices[v]:
                         stk.push(w)
             if reverse:
-                while (stk.peek() == None or stk.peek() not in self._vertices_rev[start.peek()]) and not start.is_empty():
+                while (stk.peek() == None or stk.peek() not in self._vertices_rev[
+                    start.peek()]) and not start.is_empty():
                     self._finish[self._t - start.size()] = start.pop()
 
     def dfs_loop(self, reverse=False):
