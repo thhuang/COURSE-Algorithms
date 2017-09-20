@@ -23,7 +23,6 @@ class Stack:
     def peek(self):
         return self._storage[-1] if self.size() else None
 
-
 class Heap:
     def __init__(self, max_heap=False):
         self._storage = []
