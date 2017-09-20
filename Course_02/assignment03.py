@@ -13,7 +13,6 @@ print(len(h))
 print(h)
 while len(h):
     print(h.pop())
-    print(h)
 
 print('-----------------------')
 
@@ -29,4 +28,3 @@ print(len(h))
 print(h)
 while len(h):
     print(h.pop())
-    print(h)

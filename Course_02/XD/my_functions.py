@@ -67,7 +67,7 @@ class Heap:
                     self._swap(i - 1, i * 2 - 1)
                     i = i * 2
                 elif i * 2 < len(self):
-                    if self[i * 2 - 1] < self[i * 2]:
+                    if self[i * 2 - 1] > self[i * 2]:
                         self._swap(i - 1, i * 2 - 1)
                         i = i * 2
                     else:
