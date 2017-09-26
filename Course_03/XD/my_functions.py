@@ -1,6 +1,7 @@
 from tqdm import tqdm
 from time import sleep
 from math import inf
+import random
 import heapq
 
 
@@ -22,6 +23,7 @@ class Stack:
 
     def peek(self):
         return self._storage[-1] if self.size() else None
+
 
 class Heap:
     def __init__(self, max_heap=False):
@@ -92,6 +94,7 @@ class Heap:
 
     def peek(self):
         return self[0]
+
 
 class Graph:
     def __init__(self, filename, edge_list=False, different_length=False, different_cost=False):
@@ -271,3 +274,43 @@ class Graph:
         while X != set(self._vertices):
             score, v = heapq.heappop(h)
             explore_vertex(v)
+
+    def prim_mst(self):
+        X = set()  # explored vertices
+        h = []  # unexplored vertices, heap key = minimum cost
+        total_cost = 0
+        for v in self._vertices.keys():
+            heapq.heappush(h, (inf, v))
+
+        def edge_cost(v, w):
+            return self._edges[(v, w)]
+
+        def update_cost(v, cost):
+            heapq.heappush(h, (cost, v))
+            self._vertices[v] = cost
+
+        def explore_vertex(v):
+            X.add(v)
+            self.explore(v)
+
+            for e in self._edges.keys():
+                if e[0] == v and not self.is_explored(e[1]):
+                    cost = edge_cost(v, e[1])
+                    if self._vertices[e[1]] > cost:
+                        update_cost(e[1], cost)
+
+        def initialize():
+            s = random.randint(min(self._vertices), max(self._vertices))
+            self._vertices[s] = 0
+            explore_vertex(s)
+            return s
+
+        v = initialize()
+        while X != set(self._vertices):
+            cost, w = heapq.heappop(h)
+            while self._territory[w]:
+                cost, w = heapq.heappop(h)
+            total_cost += cost
+            v = w
+            explore_vertex(v)
+        print('Total cost:', total_cost)
