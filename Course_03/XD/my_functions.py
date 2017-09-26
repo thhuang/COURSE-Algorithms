@@ -25,6 +25,7 @@ class Stack:
         return self._storage[-1] if self.size() else None
 
 
+# incorrect!
 class Heap:
     def __init__(self, max_heap=False):
         self._storage = []
@@ -94,6 +95,12 @@ class Heap:
 
     def peek(self):
         return self[0]
+
+    def size(self):
+        return len(self._storage)
+
+    def is_empty(self):
+        return self.size() == 0
 
 
 class Graph:
