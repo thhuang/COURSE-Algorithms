@@ -94,7 +94,7 @@ class Heap:
         return self[0]
 
 class Graph:
-    def __init__(self, filename, edge_list=False, different_length=False):
+    def __init__(self, filename, edge_list=False, different_length=False, different_cost=False):
         self._vertices = dict()
         self._vertices_rev = dict()  # reversal
         self._territory = dict()
@@ -150,6 +150,28 @@ class Graph:
 
             sleep(0.1)
             print('n = ' + str(len(self._vertices)) + ', m = ' + str(len(self._edges)))
+            print('{:-^50}'.format(''))
+
+        if different_cost:
+            print('Loading from ' + filename)
+            first_line = True
+            for line in tqdm(open(filename)):
+                if first_line:
+                    first_line = False
+                    continue
+                line = line.split()
+                v = int(line[0])
+                w = int(line[1])
+                c = int(line[2])
+                self._vertices[v] = inf  # minimum cost
+                self._vertices[w] = inf  # undirected graph, minimum cost
+                self._territory[v] = False
+                self._territory[w] = False
+                self._edges[(v, w)] = c
+                self._edges[(w, v)] = c
+
+            sleep(0.1)
+            print('n = ' + str(len(self._vertices)) + ', m = ' + str(len(self._edges) / 2))
             print('{:-^50}'.format(''))
 
     @property
