@@ -350,6 +350,11 @@ class Graph:
                     groups -= 1
                     print(spacing)
 
-
     def kruskal_mst(self):
         print('Total cost:', self.max_spacing_k_clustering(1))
+
+
+def hamming_distance(s1, s2):
+    assert len(s1) == len(s2), '{0} and {1} have different length: {2} and {3}'.format(s1, s2, len(s1), len(s2))
+    return sum(e1 != e2 for e1, e2 in zip(s1, s2))
+
