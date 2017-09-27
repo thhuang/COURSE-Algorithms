@@ -165,6 +165,7 @@ class Graph:
 
         if different_cost:
             print('Loading from ' + filename)
+            self._pairs = list()
             first_line = True
             for line in tqdm(open(filename)):
                 if first_line:
@@ -180,6 +181,7 @@ class Graph:
                 self._territory[w] = False
                 self._edges[(v, w)] = c
                 self._edges[(w, v)] = c
+                heapq.heappush(self._pairs, (c, (v, w)))
 
             sleep(0.1)
             print('n = ' + str(len(self._vertices)) + ', m = ' + str(len(self._edges) / 2))
@@ -323,9 +325,31 @@ class Graph:
             explore_vertex(v)
         print('Total cost:', total_cost)
 
-    def kruskal_mst(self):
-        print(self._vertices.popitem())
+    def max_spacing_k_clustering(self, k):
         u = unionfind.unionfind(len(self._vertices))
-        print(u.groups())
+        groups = len(u.groups())
+        total_spacing = 0
+        while groups > k:
+            spacing, pair = heapq.heappop(self._pairs)
+            p = pair[0] - 1
+            q = pair[1] - 1
+            if not u.issame(p, q):
+                u.unite(p, q)
+                groups -= 1
+                total_spacing += spacing
+
+        if k == 1:
+            return total_spacing
+        else:
+            while groups > 1:
+                spacing, pair = heapq.heappop(self._pairs)
+                p = pair[0] - 1
+                q = pair[1] - 1
+                if not u.issame(p, q):
+                    u.unite(p, q)
+                    groups -= 1
+                    print(spacing)
 
 
+    def kruskal_mst(self):
+        print('Total cost:', self.max_spacing_k_clustering(1))
