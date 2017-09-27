@@ -3,6 +3,7 @@ from time import sleep
 from math import inf
 import random
 import heapq
+import unionfind
 
 
 class Stack:
@@ -321,3 +322,10 @@ class Graph:
             v = w
             explore_vertex(v)
         print('Total cost:', total_cost)
+
+    def kruskal_mst(self):
+        print(self._vertices.popitem())
+        u = unionfind.unionfind(len(self._vertices))
+        print(u.groups())
+
+
