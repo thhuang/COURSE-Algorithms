@@ -2,9 +2,8 @@ import re
 import unionfind
 from tqdm import tqdm
 
-#filename = 'large_files/clustering_big.txt'
-filename = 'large_files/clustering_big_test01.txt'
-
+filename = 'large_files/clustering_big.txt'
+#filename = 'large_files/clustering_big_test01.txt'
 
 # read input
 first_line = True
@@ -43,16 +42,14 @@ def hop(n, i, j):
         else:  # n[i] == '0' and n[j] == '0'
             return n[:i] + '1' + n[i + 1:j] + '1' + n[j + 1:]
 
-
-print(cnt)
-for u in nodes:  # check every nodes
+for u in tqdm(nodes):  # check every nodes
     for i in range(max_spacing):
         for j in range(i, max_spacing):
             v = hop(u, i, j)  # a candidate of neighbors
             if v in nodes:
-                #print(my.hamming_distance(u, v), v, nodes[v])
                 clusters.unite(nodes[u], nodes[v])
-                cnt -= 1
 
-print(cnt)
-#print(len(clusters.groups()))
+groups = set()
+for i in range(len(nodes)):
+    groups.add(clusters.find(i))
+print(len(groups))
