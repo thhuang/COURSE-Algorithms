@@ -372,6 +372,7 @@ class Graph:
                     u.unite(p, q)
                     groups -= 1
                     print(spacing)
+                    break
 
     def kruskal_mst(self):
         print('Total cost:', self.max_spacing_k_clustering(1))

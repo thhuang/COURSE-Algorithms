@@ -20,6 +20,6 @@ while len(h):
     job = heapq._heappop_max(h)
     completion_time += job[2]
     twct += job[1] * completion_time
-    print(job, completion_time, twct)
+    # print(job, completion_time, twct)
 
 print(twct)
