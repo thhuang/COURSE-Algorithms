@@ -1,6 +1,7 @@
 from tqdm import tqdm
 from time import sleep
 from math import inf
+from collections import deque
 import random
 import heapq
 import unionfind
@@ -24,6 +25,28 @@ class Stack:
 
     def peek(self):
         return self._storage[-1] if self.size() else None
+
+
+class Queue:
+    def __init__(self, data=None):
+        if data:
+            self._storage = deque(data)
+        else:
+            self._storage = deque()
+    def push(self, x):
+        self._storage.append(x)
+
+    def pop(self):
+        return self._storage.popleft()
+
+    def size(self):
+        return len(self._storage)
+
+    def is_empty(self):
+        return self.size() == 0
+
+    def peek(self):
+        return self._storage[0] if self.size() else None
 
 
 # incorrect!
