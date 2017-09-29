@@ -14,7 +14,7 @@ class Symbol():
         return '({name},{weight})'.format(name=self.name, weight=self.weight)
 
     def __add__(self, other):
-        return Symbol(left.name + right.name, left.weight + right.weight)
+        return Symbol(self.name + other.name, self.weight + other.weight)
 
 # open(filename, access, buffering)
 try:
