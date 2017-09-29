@@ -1,7 +1,7 @@
 import os
 import sys
 
-# open(filename, access, buffering)
+# open file
 try:
     file = open('large_files/mwis.txt', 'r')
     header = file.readline().strip()

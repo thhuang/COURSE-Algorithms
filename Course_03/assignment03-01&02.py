@@ -16,7 +16,7 @@ class Symbol():
     def __add__(self, other):
         return Symbol(self.name + other.name, self.weight + other.weight)
 
-# open(filename, access, buffering)
+# open file
 try:
     file = open('large_files/huffman.txt', 'r')
     header = file.readline().strip()
