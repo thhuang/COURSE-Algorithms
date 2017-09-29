@@ -1,20 +1,5 @@
-import heapq
 import os
 import sys
-
-class Symbol():
-    def __init__(self, name, weight):
-        self.name = name
-        self.weight = weight
-
-    def __lt__(self, other):
-        return self.weight < other.weight
-
-    def __repr__(self):
-        return '({name},{weight})'.format(name=self.name, weight=self.weight)
-
-    def __add__(self, other):
-        return Symbol(left.name + right.name, left.weight + right.weight)
 
 # open(filename, access, buffering)
 try:
@@ -26,9 +11,9 @@ except Exception as e:
     os.system('ls')
     sys.exit()
 
-symbols = list()
+# initialization
+maximum_weight = list()
 index = 0
 for weight in file:
-    heapq.heappush(symbols, Symbol([str(index)], int(weight)))
     index += 1
 
