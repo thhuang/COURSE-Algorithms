@@ -1,7 +1,10 @@
 from tqdm import tqdm
 from time import sleep
 from math import inf
+from collections import deque
+import random
 import heapq
+import unionfind
 
 
 class Stack:
@@ -23,6 +26,30 @@ class Stack:
     def peek(self):
         return self._storage[-1] if self.size() else None
 
+
+class Queue:
+    def __init__(self, data=None):
+        if data:
+            self._storage = deque(data)
+        else:
+            self._storage = deque()
+    def push(self, x):
+        self._storage.append(x)
+
+    def pop(self):
+        return self._storage.popleft()
+
+    def size(self):
+        return len(self._storage)
+
+    def is_empty(self):
+        return self.size() == 0
+
+    def peek(self):
+        return self._storage[0] if self.size() else None
+
+
+# incorrect!
 class Heap:
     def __init__(self, max_heap=False):
         self._storage = []
@@ -93,8 +120,15 @@ class Heap:
     def peek(self):
         return self[0]
 
+    def size(self):
+        return len(self._storage)
+
+    def is_empty(self):
+        return self.size() == 0
+
+
 class Graph:
-    def __init__(self, filename, edge_list=False, different_length=False):
+    def __init__(self, filename, edge_list=False, different_length=False, different_cost=False):
         self._vertices = dict()
         self._vertices_rev = dict()  # reversal
         self._territory = dict()
@@ -150,6 +184,30 @@ class Graph:
 
             sleep(0.1)
             print('n = ' + str(len(self._vertices)) + ', m = ' + str(len(self._edges)))
+            print('{:-^50}'.format(''))
+
+        if different_cost:
+            print('Loading from ' + filename)
+            self._pairs = list()
+            first_line = True
+            for line in tqdm(open(filename)):
+                if first_line:
+                    first_line = False
+                    continue
+                line = line.split()
+                v = int(line[0])
+                w = int(line[1])
+                c = int(line[2])
+                self._vertices[v] = inf  # minimum cost
+                self._vertices[w] = inf  # undirected graph, minimum cost
+                self._territory[v] = False
+                self._territory[w] = False
+                self._edges[(v, w)] = c
+                self._edges[(w, v)] = c
+                heapq.heappush(self._pairs, (c, (v, w)))
+
+            sleep(0.1)
+            print('n = ' + str(len(self._vertices)) + ', m = ' + str(len(self._edges) / 2))
             print('{:-^50}'.format(''))
 
     @property
@@ -249,3 +307,78 @@ class Graph:
         while X != set(self._vertices):
             score, v = heapq.heappop(h)
             explore_vertex(v)
+
+    def prim_mst(self):
+        X = set()  # explored vertices
+        h = []  # unexplored vertices, heap key = minimum cost
+        total_cost = 0
+        for v in self._vertices.keys():
+            heapq.heappush(h, (inf, v))
+
+        def edge_cost(v, w):
+            return self._edges[(v, w)]
+
+        def update_cost(v, cost):
+            heapq.heappush(h, (cost, v))
+            self._vertices[v] = cost
+
+        def explore_vertex(v):
+            X.add(v)
+            self.explore(v)
+
+            for e in self._edges.keys():
+                if e[0] == v and not self.is_explored(e[1]):
+                    cost = edge_cost(v, e[1])
+                    if self._vertices[e[1]] > cost:
+                        update_cost(e[1], cost)
+
+        def initialize():
+            s = random.randint(min(self._vertices), max(self._vertices))
+            self._vertices[s] = 0
+            explore_vertex(s)
+            return s
+
+        v = initialize()
+        while X != set(self._vertices):
+            cost, w = heapq.heappop(h)
+            while self._territory[w]:
+                cost, w = heapq.heappop(h)
+            total_cost += cost
+            v = w
+            explore_vertex(v)
+        print('Total cost:', total_cost)
+
+    def max_spacing_k_clustering(self, k):
+        u = unionfind.unionfind(len(self._vertices))
+        groups = len(u.groups())
+        total_spacing = 0
+        while groups > k:
+            spacing, pair = heapq.heappop(self._pairs)
+            p = pair[0] - 1
+            q = pair[1] - 1
+            if not u.issame(p, q):
+                u.unite(p, q)
+                groups -= 1
+                total_spacing += spacing
+
+        if k == 1:
+            return total_spacing
+        else:
+            while groups > 1:
+                spacing, pair = heapq.heappop(self._pairs)
+                p = pair[0] - 1
+                q = pair[1] - 1
+                if not u.issame(p, q):
+                    u.unite(p, q)
+                    groups -= 1
+                    print(spacing)
+                    break
+
+    def kruskal_mst(self):
+        print('Total cost:', self.max_spacing_k_clustering(1))
+
+
+def hamming_distance(s1, s2):
+    assert len(s1) == len(s2), '{0} and {1} have different length: {2} and {3}'.format(s1, s2, len(s1), len(s2))
+    return sum(e1 != e2 for e1, e2 in zip(s1, s2))
+
