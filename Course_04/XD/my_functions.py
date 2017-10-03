@@ -3,6 +3,7 @@ from time import sleep
 from math import inf
 from collections import deque
 from time import time
+from copy import deepcopy
 import sys
 import os
 import random
@@ -183,9 +184,49 @@ class Graph:
                     for e in line[1:]:
                         if ',' in e:
                             w, l = e.split(',')
+                            w = int(w)
+                            l = int(l)
                             self._vertices[v] = inf  # dijkstra's greedy score
+                            self._vertices[w] = inf
                             self._territory[v] = False
-                            self._edges[(v, int(w))] = int(l)
+                            self._territory[w] = False
+                            self._edges[(v, w)] = l
+                            if w in self._in_direct_edges.keys():
+                                self._in_direct_edges[w].append(v)
+                            else:
+                                self._in_direct_edges[w] = [v]
+
+            sleep(0.1)
+            print('n = ' + str(len(self._vertices)) + ', m = ' + str(len(self._edges)))
+            print('{:-^50}'.format(''))
+
+        if different_length_direct:
+            try:
+                file = open(filename, 'r')
+                print('Loading from ' + filename)
+                header = file.readline().strip().split()
+                #print('n =', header[1])
+                #print('m =', header[0])
+            except Exception as e:
+                print(e)
+                os.system('ls')
+                sys.exit()
+
+            for line in tqdm(file):
+                line = line.split()
+                v = int(line[0])
+                w = int(line[1])
+                l = int(line[2])
+                self._vertices[v] = inf  # minimum cost
+                self._vertices[w] = inf
+                self._territory[v] = False
+                self._territory[w] = False
+                self._edges[(v, w)] = l
+                if w in self._in_direct_edges.keys():
+                    self._in_direct_edges[w].append(v)
+                else:
+                    self._in_direct_edges[w] = [v]
+
 
             sleep(0.1)
             print('n = ' + str(len(self._vertices)) + ', m = ' + str(len(self._edges)))
@@ -213,36 +254,6 @@ class Graph:
 
             sleep(0.1)
             print('n = ' + str(len(self._vertices)) + ', m = ' + str(len(self._edges) / 2))
-            print('{:-^50}'.format(''))
-
-        if different_length_direct:
-            try:
-                file = open(filename, 'r')
-                print('Loading from ' + filename)
-                header = file.readline().strip().split()
-                #print('n =', header[1])
-                #print('m =', header[0])
-            except Exception as e:
-                print(e)
-                os.system('ls')
-                sys.exit()
-
-            for line in tqdm(file):
-                line = line.split()
-                v = int(line[0])
-                w = int(line[1])
-                c = int(line[2])
-                self._vertices[v] = inf  # minimum cost
-                self._territory[v] = False
-                self._territory[w] = False
-                if w in self._in_direct_edges.keys():
-                    self._in_direct_edges[w].append(v)
-                else:
-                    self._in_direct_edges[w] = [v]
-                self._edges[(v, w)] = c
-
-            sleep(0.1)
-            print('n = ' + str(len(self._vertices)) + ', m = ' + str(len(self._edges)))
             print('{:-^50}'.format(''))
 
     @property
@@ -334,6 +345,9 @@ class Graph:
                         update_score(e[1], score)
 
         def initialize(s):
+            for v in self._vertices.keys():
+                self._vertices[v] = inf
+            self.reset_territory()
             self._vertices[s] = 0
             explore_vertex(s)
 
@@ -413,18 +427,89 @@ class Graph:
         print('Total cost:', self.max_spacing_k_clustering(1))
 
     def bellman_ford_shortest_path(self, s):
+        # initialize
         n = len(self._vertices)
         A = {(0, v):inf for v in self._vertices.keys()}
         A[(0, s)] = 0
 
-        t0 = time()
+        # Bellman-Ford algorithm
         for i in range(1, n):
             for v in self._vertices.keys():
-                A[i, v] = min(A[(i - 1, w)] + self._edges[(w, v)] for w in self._in_direct_edges[v])
+                case1 = A[(i - 1, v)]
+                case2 = min(A[(i - 1, w)] + self._edges[(w, v)] for w in self._in_direct_edges[v])
+                A[(i, v)] = case1 if case1 < case2 else case2
 
-        print(A)
-        print(time() - t0)
+        # check negative cycle
+        i = n
+        for v in self._vertices.keys():
+            case1 = A[(i - 1, v)]
+            case2 = min(A[(i - 1, w)] + self._edges[(w, v)] for w in self._in_direct_edges[v])
+            if case1 > case2:
+                print('There is a negative cycle!')
+                sys.exit()
 
+        for v in self._vertices.keys():
+            self._vertices[v] = A[(n - 1, v)]
+
+    def johnson_all_pairs_shortest_path(self):
+        t1 = time()
+        print('0. backup the original graph')
+        original_vertices = deepcopy(self._vertices)
+        original_edges = deepcopy(self._edges)
+        original_in_direct_edges = deepcopy(self._in_direct_edges)
+        t2 = time()
+        print('\t\trunning time: {0:.2f} sec'.format(t2 - t1))
+
+        t1 = t2
+        print('1. Form new graph by add new vertex s and new edges (s, v)')
+        s = min(self._vertices.keys()) - 1
+        self._vertices[s] = 0
+        self._in_direct_edges[s] = []
+        for v in list(self._vertices.keys()):
+            self._edges[(s, v)] = 0
+            if v in self._in_direct_edges.keys():
+                self._in_direct_edges[v].append(s)
+            else:
+                self._in_direct_edges[v] = [s]
+        t2 = time()
+        print('\t\trunning time: {0:.2f} sec'.format(t2 - t1))
+
+        t1 = t2
+        print('2. Run the Bellman-Ford algorithm on new graph with source vertex s')
+        self.bellman_ford_shortest_path(s)
+        t2 = time()
+        print('\t\trunning time: {0:.2f} sec'.format(t2 - t1))
+
+        t1 = t2
+        print('3. Define weights for all edges')
+        p = deepcopy(self._vertices)  # weights of vertices
+        self._vertices = original_vertices
+        self._edges = original_edges
+        self._in_direct_edges = original_in_direct_edges
+        for e in self._edges.keys():
+            self._edges[e] += p[e[0]] - p[e[1]]
+        t2 = time()
+        print('\t\trunning time: {0:.2f} sec'.format(t2 - t1))
+
+        t1 = t2
+        print('4. Run Dijkstra\'s algorithm in the original graph')
+        SSSP = list()
+        for u in tqdm(self._vertices.keys()):
+            self.dijkstra_shortest_path(u)
+            shortest = inf
+            for v in self._vertices.keys():
+                distance = self._vertices[v] - p[u] + p[v]
+                if distance < shortest: shortest = distance
+            SSSP.append(shortest)
+            #print('\tsourse: {s}, shortest distance = {d}'.format(s=u, d=shortest))
+        t2 = time()
+        print('\t\trunning time: {0:.2f} sec'.format(t2 - t1))
+
+        t1 = t2
+        print('5. Compute all-pair shortest path distance')
+        print('Answer:', min(SSSP))
+        t2 = time()
+        print('\t\trunning time: {0:.2f} sec'.format(t2 - t1))
 
 def hamming_distance(s1, s2):
     assert len(s1) == len(s2), '{0} and {1} have different length: {2} and {3}'.format(s1, s2, len(s1), len(s2))
