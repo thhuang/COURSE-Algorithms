@@ -2,6 +2,9 @@ from tqdm import tqdm
 from time import sleep
 from math import inf
 from collections import deque
+from time import time
+import sys
+import os
 import random
 import heapq
 import unionfind
@@ -128,11 +131,13 @@ class Heap:
 
 
 class Graph:
-    def __init__(self, filename, edge_list=False, different_length=False, different_cost=False):
+    def __init__(self, filename, edge_list=False, different_length=False, different_cost=False,
+                 different_length_direct=False):
         self._vertices = dict()
         self._vertices_rev = dict()  # reversal
         self._territory = dict()
         self._edges = dict()
+        self._in_direct_edges = dict()
         self._leader = dict()
         self._finish = dict()
         self._t = 0  # finishing time
@@ -208,6 +213,36 @@ class Graph:
 
             sleep(0.1)
             print('n = ' + str(len(self._vertices)) + ', m = ' + str(len(self._edges) / 2))
+            print('{:-^50}'.format(''))
+
+        if different_length_direct:
+            try:
+                file = open(filename, 'r')
+                print('Loading from ' + filename)
+                header = file.readline().strip().split()
+                #print('n =', header[1])
+                #print('m =', header[0])
+            except Exception as e:
+                print(e)
+                os.system('ls')
+                sys.exit()
+
+            for line in tqdm(file):
+                line = line.split()
+                v = int(line[0])
+                w = int(line[1])
+                c = int(line[2])
+                self._vertices[v] = inf  # minimum cost
+                self._territory[v] = False
+                self._territory[w] = False
+                if w in self._in_direct_edges.keys():
+                    self._in_direct_edges[w].append(v)
+                else:
+                    self._in_direct_edges[w] = [v]
+                self._edges[(v, w)] = c
+
+            sleep(0.1)
+            print('n = ' + str(len(self._vertices)) + ', m = ' + str(len(self._edges)))
             print('{:-^50}'.format(''))
 
     @property
@@ -376,6 +411,19 @@ class Graph:
 
     def kruskal_mst(self):
         print('Total cost:', self.max_spacing_k_clustering(1))
+
+    def bellman_ford_shortest_path(self, s):
+        n = len(self._vertices)
+        A = {(0, v):inf for v in self._vertices.keys()}
+        A[(0, s)] = 0
+
+        t0 = time()
+        for i in range(1, n):
+            for v in self._vertices.keys():
+                A[i, v] = min(A[(i - 1, w)] + self._edges[(w, v)] for w in self._in_direct_edges[v])
+
+        print(A)
+        print(time() - t0)
 
 
 def hamming_distance(s1, s2):
