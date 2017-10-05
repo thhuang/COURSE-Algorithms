@@ -26,15 +26,6 @@ for line in file:
 # initialize
 n = len(V)
 A = dict()
-count = 0
-for m in range(1, n+1):  # m = sub-problem size
-    for S in combinations(range(n), m):
-        if S == (0,):
-            A[(S, 0)] = 0
-        else:
-            A[(S, 0)] = inf
-        count += 1
-print(count, 'sub-problems')
 
 # main loop
 time.sleep(0.1)
@@ -46,7 +37,15 @@ for m in tqdm(range(2, n+1)):  # m = sub-problem size
                 for k in S:
                     if k != j:
                         S_sub = tuple(v for v in S if v != j)
-                        sub_prob.append(A[(S_sub, k)] + V[k].distance(V[j]))
+                        if k != 0:
+                            sub_prob.append(A[(S_sub, k)] + V[k].distance(V[j]))
+                        else:
+                            if S_sub != (0,):
+                                sub_prob.append(inf)
+                            else:
+                                sub_prob.append(V[k].distance(V[j]))
+
+
                 A[(S, j)] = min(sub_prob)
 
 time.sleep(0.1)
