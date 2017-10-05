@@ -25,17 +25,20 @@ for line in file:
 
 # initialize
 n = len(V)
+all_sets = [[]]
+m = 1
 A = dict()
-for m in tqdm(range(1, n+1)):  # m = sub-problem size
-    for S in combinations(range(n), m):
-        if S != (0,):
-            A[(S, 0)] = inf
-        else:
-            A[(S, 0)] = 0
+for S in combinations(range(n), m):
+    if S != (0,):
+        A[(S, 0)] = inf
+    else:
+        A[(S, 0)] = 0
+all_sets.append(A)
 
 # main loop
 time.sleep(0.1)
 for m in tqdm(range(2, n+1)):  # m = sub-problem size
+    A = dict()
     for S in combinations(range(n), m):
         if S[0] == 0:
             for j in S[1:]:
@@ -43,8 +46,13 @@ for m in tqdm(range(2, n+1)):  # m = sub-problem size
                 for k in S:
                     if k != j:
                         S_sub = tuple(v for v in S if v != j)
-                        sub_prob.append(A[(S_sub, k)] + V[k].distance(V[j]))
+                        if len(S_sub) > 1 and k == 0:
+                            sub_prob.append(inf)
+                        else:
+                            sub_prob.append(all_sets[m-1][(S_sub, k)] + V[k].distance(V[j]))
                 A[(S, j)] = min(sub_prob)
+    all_sets.append(A)
+    all_sets[m - 1] = []
 
 time.sleep(0.1)
 S = tuple(range(n))
