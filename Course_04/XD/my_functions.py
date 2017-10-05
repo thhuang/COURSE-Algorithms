@@ -9,6 +9,7 @@ import os
 import random
 import heapq
 import unionfind
+import math
 
 
 class Stack:
@@ -52,6 +53,27 @@ class Queue:
     def peek(self):
         return self._storage[0] if self.size() else None
 
+
+class Vertex:
+    def __init__(self, x=0, y=0):
+        self._x = x
+        self._y = y
+
+    @property
+    def x(self):
+        return self._x
+
+    @property
+    def y(self):
+        return self._y
+
+    def distance(self, v):
+        dx = self.x - v.x
+        dy = self.y - v.y
+        return math.sqrt(dx * dx + dy * dy)
+
+    def __repr__(self):
+        return '({x}, {y})'.format(x=self._x, y=self._y)
 
 # incorrect!
 class Heap:
