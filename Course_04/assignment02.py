@@ -8,8 +8,8 @@ from itertools import combinations
 
 
 # load data
-filename = 'large_files/tsp_test01.txt'
-#filename = 'large_files/tsp.txt'
+#filename = 'large_files/tsp_test01.txt'
+filename = 'large_files/tsp.txt'
 try:
     file = open(filename, 'r')
     header = file.readline().strip()
