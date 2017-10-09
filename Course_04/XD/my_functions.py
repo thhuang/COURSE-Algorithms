@@ -38,6 +38,7 @@ class Queue:
             self._storage = deque(data)
         else:
             self._storage = deque()
+
     def push(self, x):
         self._storage.append(x)
 
@@ -74,6 +75,7 @@ class Vertex:
 
     def __repr__(self):
         return '({x}, {y})'.format(x=self._x, y=self._y)
+
 
 # incorrect!
 class Heap:
@@ -155,7 +157,7 @@ class Heap:
 
 class Graph:
     def __init__(self, filename, edge_list=False, different_length=False, different_cost=False,
-                 different_length_direct=False):
+                 different_length_direct=False, two_sat=False):
         self._vertices = dict()
         self._vertices_rev = dict()  # reversal
         self._territory = dict()
@@ -172,8 +174,6 @@ class Graph:
                 v, w = line.split()
                 v = int(v)
                 w = int(w)
-
-                self._edges[v] = w
 
                 # add adjacent list
                 if not self._vertices.get(v):
@@ -227,8 +227,8 @@ class Graph:
                 file = open(filename, 'r')
                 print('Loading from ' + filename)
                 header = file.readline().strip().split()
-                #print('n =', header[1])
-                #print('m =', header[0])
+                # print('n =', header[1])
+                # print('m =', header[0])
             except Exception as e:
                 print(e)
                 os.system('ls')
@@ -248,7 +248,6 @@ class Graph:
                     self._in_direct_edges[w].append(v)
                 else:
                     self._in_direct_edges[w] = [v]
-
 
             sleep(0.1)
             print('n = ' + str(len(self._vertices)) + ', m = ' + str(len(self._edges)))
@@ -278,6 +277,74 @@ class Graph:
             print('n = ' + str(len(self._vertices)) + ', m = ' + str(len(self._edges) / 2))
             print('{:-^50}'.format(''))
 
+        if two_sat:
+            print('Loading from ' + filename)
+            try:
+                file = open(filename, 'r')
+                n = int(file.readline())
+                print(n, 'clauses')
+            except Exception as e:
+                print(e)
+                os.system('ls')
+                sys.exit()
+
+            for line in tqdm(file):
+                A, B = line.split()
+                A = int(A)
+                B = int(B)
+                if A >= 0:  # AT
+                    if B >= 0:  # BT   # AF->BT & BF->AT
+                        v1 = A * 2  # AF
+                        w1 = B * 2 + 1  # BT
+                        v2 = B * 2  # BF
+                        w2 = A * 2 + 1  # AT
+                    else:  # BF   # AF->BF & BT->AT
+                        B = -B
+                        v1 = A * 2  # AF
+                        w1 = B * 2  # BF
+                        v2 = B * 2 + 1  # BT
+                        w2 = A * 2 + 1  # AT
+                else:  # AF
+                    A = -A
+                    if B >= 0:  # BT   # AT->BT & BF->AF
+                        v1 = A * 2 + 1  # AT
+                        w1 = B * 2 + 1  # BT
+                        v2 = B * 2  # BF
+                        w2 = A * 2  # AF
+                    else:  # BF   # AT->BF & BT->AF
+                        B = -B
+                        v1 = A * 2 + 1  # AT
+                        w1 = B * 2  # BF
+                        v2 = B * 2 + 1  # BT
+                        w2 = A * 2  # AF
+
+                for v, w in zip((v1, v2), (w1, w2)):
+                    if v in self._edges:
+                        self._edges[v].append(w)
+                    else:
+                        self._edges[v] = [w]
+                    # add adjacent list
+                    if not self._vertices.get(v):
+                        self._territory[v] = False
+                        self._vertices[v] = [w]
+                    else:
+                        self._vertices[v].append(w)
+                    if not self._vertices_rev.get(w):
+                        self._vertices_rev[w] = [v]
+                    else:
+                        self._vertices_rev[w].append(v)
+                    # include sink nodes
+                    if not self._vertices.get(w):
+                        self._territory[w] = False
+                        self._vertices[w] = []
+                    if not self._vertices_rev.get(v):
+                        self._vertices_rev[v] = []
+
+            sleep(0.1)
+
+            print('n = ' + str(len(self._vertices)) + ', m = ' + str(sum([len(e) for e in self._edges.values()])))
+            print('{:-^50}'.format(''))
+
     @property
     def vertices(self):
         return self._vertices
@@ -292,12 +359,20 @@ class Graph:
     def explore(self, v):
         self._territory[v] = True
 
-    def scc(self):
+    def scc(self, two_sat=False):
         scc_size = list()
-        for k in self._leader.keys():
-            scc_size.append(len(self._leader[k]))
-        scc_size.sort()
-        return scc_size
+
+        if two_sat:
+            for k in self._leader.keys():
+                members = [v // 2 for v in self._leader[k]]
+                if len(members) != len(set(members)):  # check if there is a duplicate
+                    return False  # unsatisfiable
+            return True  # satisfiable
+        else:
+            for k in self._leader.keys():
+                scc_size.append(len(self._leader[k]))
+            scc_size.sort()
+            return scc_size
 
     def reset_territory(self):
         for v in self._territory:
@@ -451,7 +526,7 @@ class Graph:
     def bellman_ford_shortest_path(self, s):
         # initialize
         n = len(self._vertices)
-        A = {(0, v):inf for v in self._vertices.keys()}
+        A = {(0, v): inf for v in self._vertices.keys()}
         A[(0, s)] = 0
 
         # Bellman-Ford algorithm
@@ -523,7 +598,7 @@ class Graph:
                 distance = self._vertices[v] - p[u] + p[v]
                 if distance < shortest: shortest = distance
             SSSP.append(shortest)
-            #print('\tsourse: {s}, shortest distance = {d}'.format(s=u, d=shortest))
+            # print('\tsourse: {s}, shortest distance = {d}'.format(s=u, d=shortest))
         t2 = time()
         print('\t\trunning time: {0:.2f} sec'.format(t2 - t1))
 
@@ -533,7 +608,7 @@ class Graph:
         t2 = time()
         print('\t\trunning time: {0:.2f} sec'.format(t2 - t1))
 
+
 def hamming_distance(s1, s2):
     assert len(s1) == len(s2), '{0} and {1} have different length: {2} and {3}'.format(s1, s2, len(s1), len(s2))
     return sum(e1 != e2 for e1, e2 in zip(s1, s2))
-
